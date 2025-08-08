@@ -1,0 +1,549 @@
+/* Base Styles */
+.wallet-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+}
+
+.page-title {
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--tw-text-gray-900);
+    margin: 0;
+}
+
+.back-btn {
+    display: inline-flex;
+    align-items: center;
+    padding: 8px 12px;
+    background-color: var(--tw-bg-gray-100);
+    color: var(--tw-text-gray-700);
+    border-radius: 6px;
+    font-size: 14px;
+    transition: all 0.2s;
+}
+
+.back-btn:hover {
+    background-color: var(--tw-bg-gray-200);
+    color: var(--tw-text-gray-900);
+}
+
+.back-btn i {
+    margin-right: 6px;
+}
+
+/* Balance Overview */
+.balance-overview {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 20px;
+    margin-bottom: 24px;
+}
+
+@media (min-width: 768px) {
+    .balance-overview {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+.balance-card {
+    background: linear-gradient(135deg, var(--tw-gradient-from), var(--tw-gradient-to));
+    border-radius: 12px;
+    padding: 20px;
+    color: white;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    position: relative;
+    overflow: hidden;
+}
+
+.balance-card::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 100%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 70%);
+}
+
+.balance-card.deriv-balance {
+    --tw-gradient-from: #2d3748;
+    --tw-gradient-to: #4a5568;
+}
+
+.balance-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.balance-header h3 {
+    font-size: 18px;
+    font-weight: 500;
+    margin: 0;
+}
+
+.eye-toggle {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.eye-toggle:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.deriv-logo {
+    height: 24px;
+    width: auto;
+}
+
+.balance-amount {
+    margin-bottom: 16px;
+}
+
+.balance-amount .currency {
+    font-size: 16px;
+    font-weight: 500;
+    margin-right: 8px;
+}
+
+.balance-amount .amount {
+    font-size: 28px;
+    font-weight: 700;
+}
+
+.balance-footer {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    opacity: 0.9;
+}
+
+/* Detailed Balance Cards */
+.balance-card.detailed {
+    padding: 24px;
+}
+
+.balance-details {
+    margin-top: 20px;
+}
+
+.detail-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.detail-item:last-child {
+    border-bottom: none;
+}
+
+.detail-label {
+    font-size: 14px;
+    opacity: 0.9;
+}
+
+.detail-value {
+    font-weight: 500;
+}
+
+.balance-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 20px;
+}
+
+.action-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px;
+    border-radius: 8px;
+    font-weight: 500;
+    font-size: 14px;
+    transition: all 0.2s;
+}
+
+.action-btn i {
+    margin-right: 8px;
+}
+
+.action-btn.deposit {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+}
+
+.action-btn.deposit:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.action-btn.withdraw {
+    background: rgba(0, 0, 0, 0.2);
+    color: white;
+}
+
+.action-btn.withdraw:hover {
+    background: rgba(0, 0, 0, 0.3);
+}
+
+/* Quick Actions */
+.quick-actions {
+    margin-bottom: 24px;
+}
+
+.section-title {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 16px;
+    color: var(--tw-text-gray-900);
+}
+
+.action-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+}
+
+@media (min-width: 640px) {
+    .action-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+.action-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 16px 12px;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+    text-decoration: none;
+    color: var(--tw-text-gray-700);
+    border: 1px solid var(--tw-border-gray-200);
+}
+
+.action-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border-color: var(--tw-border-primary);
+}
+
+.action-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 12px;
+    color: white;
+    font-size: 20px;
+}
+
+.action-icon.send-money {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+}
+
+.action-icon.mpesa-deposit {
+    background: linear-gradient(135deg, #f093fb, #f5576c);
+}
+
+.action-icon.airtime {
+    background: linear-gradient(135deg, #43e97b, #38f9d7);
+}
+
+.action-icon.bank-transfer {
+    background: linear-gradient(135deg, #ff758c, #ff7eb3);
+}
+
+.action-icon.deriv-deposit {
+    background: linear-gradient(135deg, #a18cd1, #fbc2eb);
+}
+
+.action-icon.bundles {
+    background: linear-gradient(135deg, #ffc3a0, #ffafbd);
+}
+
+.action-icon.mpesa-withdraw {
+    background: linear-gradient(135deg, #f093fb, #f5576c);
+}
+
+.action-icon.deriv-withdraw {
+    background: linear-gradient(135deg, #a18cd1, #fbc2eb);
+}
+
+.action-card span {
+    font-size: 14px;
+    font-weight: 500;
+    text-align: center;
+}
+
+/* Transactions Section */
+.transactions-section {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+    border: 1px solid var(--tw-border-gray-200);
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--tw-border-gray-200);
+}
+
+.view-all {
+    font-size: 14px;
+    color: var(--tw-text-primary);
+    font-weight: 500;
+    text-decoration: none;
+}
+
+.view-all:hover {
+    text-decoration: underline;
+}
+
+.transactions-list {
+    padding: 0;
+}
+
+.transaction-item {
+    display: flex;
+    align-items: center;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--tw-border-gray-200);
+    text-decoration: none;
+    color: var(--tw-text-gray-700);
+    transition: all 0.2s;
+}
+
+.transaction-item:hover {
+    background: var(--tw-bg-gray-50);
+}
+
+.transaction-item:last-child {
+    border-bottom: none;
+}
+
+.transaction-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--tw-bg-gray-100);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 16px;
+    color: var(--tw-text-gray-500);
+    font-size: 16px;
+}
+
+.transaction-icon img {
+    width: 24px;
+    height: 24px;
+}
+
+.transaction-details {
+    flex: 1;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.transaction-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.transaction-type {
+    font-weight: 500;
+    margin-bottom: 4px;
+}
+
+.transaction-date {
+    font-size: 12px;
+    color: var(--tw-text-gray-500);
+}
+
+.transaction-amount {
+    font-weight: 600;
+}
+
+.transaction-amount.credit {
+    color: var(--tw-text-green-600);
+}
+
+.transaction-amount.debit {
+    color: var(--tw-text-red-600);
+}
+
+.transaction-amount span {
+    font-size: 12px;
+    margin-left: 4px;
+    opacity: 0.8;
+}
+
+.empty-transactions {
+    padding: 40px 20px;
+    text-align: center;
+    color: var(--tw-text-gray-500);
+}
+
+.empty-transactions i {
+    font-size: 32px;
+    margin-bottom: 12px;
+    opacity: 0.5;
+}
+
+.empty-transactions p {
+    margin: 0;
+}
+
+/* Detailed Transactions */
+.transactions-list.detailed .transaction-item {
+    align-items: flex-start;
+    padding: 20px;
+}
+
+.transactions-list.detailed .transaction-details {
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.transactions-list.detailed .transaction-info {
+    width: 100%;
+    margin-bottom: 8px;
+}
+
+.transactions-list.detailed .transaction-reference {
+    font-size: 12px;
+    color: var(--tw-text-gray-500);
+    margin-top: 4px;
+}
+
+.transactions-list.detailed .transaction-amount {
+    align-self: flex-end;
+}
+
+.transaction-status {
+    font-size: 12px;
+    padding: 4px 8px;
+    border-radius: 12px;
+    margin-left: 12px;
+}
+
+.transaction-status.completed {
+    background: var(--tw-bg-green-100);
+    color: var(--tw-text-green-800);
+}
+
+.transaction-status.pending {
+    background: var(--tw-bg-yellow-100);
+    color: var(--tw-text-yellow-800);
+}
+
+.transaction-status.failed {
+    background: var(--tw-bg-red-100);
+    color: var(--tw-text-red-800);
+}
+
+/* Pagination */
+.pagination {
+    display: flex;
+    justify-content: center;
+    padding: 20px;
+    border-top: 1px solid var(--tw-border-gray-200);
+}
+
+/* Send Money Page */
+.send-money-container {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 24px;
+}
+
+@media (min-width: 1024px) {
+    .send-money-container {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+.send-options {
+    background: white;
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    border: 1px solid var(--tw-border-gray-200);
+}
+
+.option-tabs {
+    display: flex;
+    border-bottom: 1px solid var(--tw-border-gray-200);
+    margin-bottom: 20px;
+}
+
+.option-tab {
+    padding: 10px 16px;
+    border: none;
+    background: none;
+    font-weight: 500;
+    color: var(--tw-text-gray-500);
+    cursor: pointer;
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.option-tab i {
+    margin-right: 8px;
+}
+
+.option-tab.active {
+    color: var(--tw-text-primary);
+}
+
+.option-tab.active::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--tw-bg-primary);
+}
+
+.option-content {
+    display: none;
+}
+
+.option-content.active {
+    display: block;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}

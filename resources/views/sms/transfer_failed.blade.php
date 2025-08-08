@@ -1,0 +1,1 @@
+Hi {{ $senderName }}, your transfer of KES {{ number_format($amount, 2) }} to {{ $recipientPhone }} failed. KES {{ number_format($amount + $fee, 2) }} has been refunded to your wallet. Balance: KES {{ number_format($balance, 2) }}. Ref: {{ $transactionId }}. {{ $timestamp }}

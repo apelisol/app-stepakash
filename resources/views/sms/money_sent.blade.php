@@ -1,0 +1,1 @@
+Hi {{ $senderName }}, you have sent KES {{ number_format($amount, 2) }} to {{ $recipientName }} ({{ $recipientPhone }}). Fee: KES {{ number_format($fee, 2) }}. Balance: KES {{ number_format($balance, 2) }}. Ref: {{ $transactionId }}. {{ $timestamp }}

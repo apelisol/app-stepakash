@@ -1,0 +1,189 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom CSS Variables for additional customization */
+:root {
+    --primary-color: #0f753a;
+    --secondary-color: #2c8a53;
+    --accent-color: #efd050;
+    --accent-hover: #f4dc74;
+    --text-color: #333333;
+    --light-text: #666666;
+    --background: #e8e8e8;
+    --card-bg: #ffffff;
+    --success: #0f753a;
+    --danger: #e74c3c;
+    --warning: #f39c12;
+}
+
+/* Base Styles */
+@layer base {
+    html {
+        scroll-behavior: smooth;
+    }
+    
+    body {
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        text-rendering: optimizeLegibility;
+    }
+}
+
+/* Component Styles */
+@layer components {
+    /* Custom Button Styles */
+    .btn-primary {
+        @apply bg-primary hover:bg-primary-600 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-200 transform hover:scale-105 hover:shadow-lg;
+    }
+    
+    .btn-secondary {
+        @apply bg-secondary hover:bg-secondary-600 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-200;
+    }
+    
+    .btn-accent {
+        @apply bg-accent hover:bg-accent-hover text-text font-semibold py-3 px-6 rounded-lg transition-all duration-200;
+    }
+    
+    .btn-outline {
+        @apply border-2 border-primary text-primary hover:bg-primary hover:text-white font-semibold py-3 px-6 rounded-lg transition-all duration-200;
+    }
+    
+    /* Custom Input Styles */
+    .form-input {
+        @apply w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200;
+    }
+    
+    /* Custom Card Styles */
+    .card {
+        @apply bg-card-bg rounded-xl shadow-lg p-6;
+    }
+    
+    .card-hover {
+        @apply bg-card-bg rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow duration-300;
+    }
+    
+    /* Custom Alert Styles */
+    .alert {
+        @apply px-4 py-3 rounded-lg mb-4;
+    }
+    
+    .alert-success {
+        @apply bg-success/10 border border-success/20 text-success;
+    }
+    
+    .alert-danger {
+        @apply bg-danger/10 border border-danger/20 text-danger;
+    }
+    
+    .alert-warning {
+        @apply bg-warning/10 border border-warning/20 text-warning;
+    }
+    
+    /* Loading Spinner */
+    .spinner {
+        @apply animate-spin rounded-full border-2 border-gray-300 border-t-primary;
+    }
+    
+    /* Glass Effect */
+    .glass {
+        @apply bg-white/20 backdrop-blur-sm border border-white/20;
+    }
+    
+    /* Gradient Backgrounds */
+    .gradient-primary {
+        @apply bg-gradient-to-r from-primary to-secondary;
+    }
+    
+    .gradient-accent {
+        @apply bg-gradient-to-r from-accent to-accent-hover;
+    }
+    
+    /* Custom Scrollbar */
+    .scrollbar-thin {
+        scrollbar-width: thin;
+        scrollbar-color: theme('colors.primary.300') theme('colors.gray.100');
+    }
+    
+    .scrollbar-thin::-webkit-scrollbar {
+        width: 6px;
+    }
+    
+    .scrollbar-thin::-webkit-scrollbar-track {
+        @apply bg-gray-100 rounded-full;
+    }
+    
+    .scrollbar-thin::-webkit-scrollbar-thumb {
+        @apply bg-primary-300 rounded-full hover:bg-primary-400;
+    }
+}
+
+/* Utility Classes */
+@layer utilities {
+    /* Text Gradient */
+    .text-gradient {
+        @apply bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent;
+    }
+    
+    /* Custom Shadows */
+    .shadow-primary {
+        box-shadow: 0 10px 25px -3px rgba(15, 117, 58, 0.1), 0 4px 6px -2px rgba(15, 117, 58, 0.05);
+    }
+    
+    .shadow-accent {
+        box-shadow: 0 10px 25px -3px rgba(239, 208, 80, 0.2), 0 4px 6px -2px rgba(239, 208, 80, 0.1);
+    }
+    
+    /* Animation Classes */
+    .animate-float {
+        animation: float 6s ease-in-out infinite;
+    }
+    
+    @keyframes float {
+        0%, 100% {
+            transform: translateY(0px);
+        }
+        50% {
+            transform: translateY(-10px);
+        }
+    }
+    
+    /* Custom Focus States */
+    .focus-primary {
+        @apply focus:ring-2 focus:ring-primary focus:ring-opacity-50 focus:border-primary;
+    }
+    
+    /* Responsive Text Sizes */
+    .text-responsive-xl {
+        @apply text-xl sm:text-2xl md:text-3xl lg:text-4xl;
+    }
+    
+    .text-responsive-lg {
+        @apply text-lg sm:text-xl md:text-2xl lg:text-3xl;
+    }
+    
+    .text-responsive-md {
+        @apply text-base sm:text-lg md:text-xl lg:text-2xl;
+    }
+}
+
+/* Dark mode support (if needed) */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --background: #1a1a1a;
+        --card-bg: #2d2d2d;
+        --text-color: #ffffff;
+        --light-text: #cccccc;
+    }
+}
+
+/* Print Styles */
+@media print {
+    .no-print {
+        display: none !important;
+    }
+    
+    body {
+        @apply text-black bg-white;
+    }
+}

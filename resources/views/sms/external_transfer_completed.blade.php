@@ -1,0 +1,1 @@
+Hi {{ $senderName }}, your transfer of KES {{ number_format($amount, 2) }} to {{ $recipientPhone }} has been completed successfully. M-Pesa Code: {{ $mpesaCode }}. Ref: {{ $transactionId }}. {{ $timestamp }}

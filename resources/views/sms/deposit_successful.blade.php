@@ -1,0 +1,1 @@
+Dear {{ $customerName }}, Your StepaKash wallet has been credited with KES {{ number_format($amount, 2) }} (Ref: {{ $mpesaCode }}) on {{ $transactionDate }}. New balance: KES {{ number_format($balance, 2) }}. Money on The Go with StepaKash.

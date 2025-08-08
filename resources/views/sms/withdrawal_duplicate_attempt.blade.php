@@ -1,0 +1,1 @@
+Dear {{ $customerName }}, Duplicate withdrawal attempt of KES {{ number_format($amount, 2) }} blocked for security. Contact support if this wasn't you. Time: {{ $attemptTime }}. Money on The Go with StepaKash.
