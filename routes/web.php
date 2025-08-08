@@ -46,6 +46,7 @@ Route::middleware('guest')->group(function () {
         Route::get('/', [DerivAuthController::class, 'showDerivAuth'])->name('auth.deriv');
         Route::get('/oauth', [DerivAuthController::class, 'initiateOAuth'])->name('auth.deriv.oauth');
         Route::get('/callback', [DerivAuthController::class, 'handleCallback'])->name('auth.deriv.callback');
+        Route::post('/authorize', [DerivAuthController::class, 'authorizeAccount'])->name('auth.deriv.authorize');
     });
 });
 
