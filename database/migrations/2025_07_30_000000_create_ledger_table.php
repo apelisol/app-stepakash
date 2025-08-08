@@ -13,10 +13,7 @@ return new class extends Migration
     {
         Schema::create('ledger', function (Blueprint $table) {
             $table->id();
-            
-            // Explicitly define wallet_id to match customers table
-            $table->string('wallet_id', 255)->charset('utf8mb4')->collation('utf8mb4_unicode_ci');
-            
+            $table->string('wallet_id', 255);
             $table->string('transaction_id');
             $table->decimal('amount', 15, 2);
             $table->enum('cr_dr', ['CR', 'DR']);
@@ -24,15 +21,8 @@ return new class extends Migration
             $table->text('description')->nullable();
             $table->timestamps();
             
-            // Add index first
+            // Add index
             $table->index('wallet_id');
-            
-            // Then add foreign key constraint
-            $table->foreign('wallet_id')
-                  ->references('wallet_id')
-                  ->on('customers')
-                  ->onDelete('cascade')
-                  ->onUpdate('cascade');
         });
     }
 
