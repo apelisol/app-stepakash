@@ -6,20 +6,19 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    public function up()
+    public function up(): void
     {
-        Schema::create('login_sessions', function (Blueprint $table) {
+        Schema::create('forgot_password', function (Blueprint $table) {
             $table->id();
             $table->string('wallet_id');
             $table->string('phone');
-            $table->string('ip_address');
-            $table->string('session_id')->unique();
+            $table->string('otp');
             $table->timestamps();
         });
     }
 
-    public function down()
+    public function down(): void
     {
-        Schema::dropIfExists('login_sessions');
+        Schema::dropIfExists('forgot_password');
     }
 };

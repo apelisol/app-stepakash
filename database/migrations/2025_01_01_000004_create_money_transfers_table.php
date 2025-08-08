@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    public function up()
+    public function up(): void
     {
         Schema::create('money_transfers', function (Blueprint $table) {
             $table->id();
@@ -29,13 +29,14 @@ return new class extends Migration
             $table->timestamp('transactionCompletedDateTime')->nullable();
             $table->timestamps();
 
+            // Indexes
             $table->index(['sender_wallet_id', 'created_at']);
             $table->index(['recipient_phone', 'created_at']);
             $table->index(['status', 'created_at']);
         });
     }
 
-    public function down()
+    public function down(): void
     {
         Schema::dropIfExists('money_transfers');
     }

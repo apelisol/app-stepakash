@@ -273,7 +273,40 @@
                             <span class="spinner hidden animate-spin rounded-full h-4 w-4 sm:h-5 sm:w-5 border-b-2 border-white mr-2 sm:mr-3"></span>
                             <span class="btn-text text-sm sm:text-base">Complete Registration</span>
                         </button>
+
+                        <!-- Debug Section - Only show if we have deriv_data in session -->
+                        @if(session('deriv_data'))
+                        <div class="mt-8 border border-gray-200 rounded-lg overflow-hidden">
+                            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                                <button type="button" onclick="toggleDebugSection()" class="flex items-center justify-between w-full text-left text-sm font-medium text-gray-700 focus:outline-none">
+                                    <span>Debug Information (Testing Only)</span>
+                                    <svg id="debugToggleIcon" class="h-5 w-5 text-gray-500 transform transition-transform" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                                    </svg>
+                                </button>
+                            </div>
+                            <div id="debugSection" class="hidden p-4 bg-white text-xs overflow-auto max-h-96">
+                                <pre class="whitespace-pre-wrap">{{ json_encode(session('deriv_data'), JSON_PRETTY_PRINT) }}</pre>
+                            </div>
+                        </div>
+                        @endif
                     </form>
+
+                    <style>
+                        .debug-section {
+                            transition: max-height 0.3s ease-in-out;
+                            overflow: hidden;
+                        }
+                    </style>
+
+                    <script>
+                        function toggleDebugSection() {
+                            const section = document.getElementById('debugSection');
+                            const icon = document.getElementById('debugToggleIcon');
+                            section.classList.toggle('hidden');
+                            icon.classList.toggle('rotate-180');
+                        }
+                    </script>
 
                     <div class="text-center mt-8 sm:mt-12 pt-6 sm:pt-8 border-t border-gray-100">
                         <p class="text-text-light text-xs sm:text-sm">

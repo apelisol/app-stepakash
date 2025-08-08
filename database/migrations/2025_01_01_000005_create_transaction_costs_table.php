@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    public function up()
+    public function up(): void
     {
         Schema::create('transaction_costs', function (Blueprint $table) {
             $table->id();
@@ -17,11 +17,12 @@ return new class extends Migration
             $table->boolean('is_active')->default(true);
             $table->timestamps();
 
+            // Indexes
             $table->index(['transfer_type', 'min_amount', 'max_amount']);
         });
     }
 
-    public function down()
+    public function down(): void
     {
         Schema::dropIfExists('transaction_costs');
     }
