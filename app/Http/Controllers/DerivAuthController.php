@@ -99,25 +99,54 @@ class DerivAuthController extends Controller
             }
 
             $authData = $response->json();
+            \Log::info('Deriv API Authorize Response:', $authData);
             
             if (!isset($authData['authorize'])) {
-                throw new \Exception('Invalid response from Deriv API');
+                $errorMsg = $authData['error']['message'] ?? 'Invalid response from Deriv API';
+                \Log::error('Deriv API Error:', [
+                    'error' => $errorMsg,
+                    'full_response' => $authData
+                ]);
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Failed to authorize with Deriv: ' . $errorMsg
+                ], 400);
             }
 
             $auth = $authData['authorize'];
             
             // Get additional account settings
-            $settingsResponse = Http::withHeaders([
-                'Content-Type' => 'application/json',
-                'Authorization' => 'Bearer ' . $selectedAccount['token']
-            ])->post('https://api.deriv.com/api/v1/', [
-                'get_settings' => 1,
-                'req_id' => (int) round(microtime(true) * 1000)
-            ]);
-
             $settings = [];
-            if ($settingsResponse->successful() && isset($settingsResponse['get_settings'])) {
-                $settings = $settingsResponse['get_settings'];
+            try {
+                $settingsResponse = Http::withHeaders([
+                    'Content-Type' => 'application/json',
+                    'Authorization' => 'Bearer ' . $selectedAccount['token']
+                ])->post('https://api.deriv.com/api/v1/', [
+                    'get_settings' => 1,
+                    'req_id' => (int) round(microtime(true) * 1000)
+                ]);
+
+                if ($settingsResponse->successful()) {
+                    $settingsData = $settingsResponse->json();
+                    if (isset($settingsData['error'])) {
+                        \Log::warning('Failed to get account settings:', [
+                            'error' => $settingsData['error'],
+                            'account' => $selectedAccount['account_number']
+                        ]);
+                    } else if (isset($settingsData['get_settings'])) {
+                        $settings = $settingsData['get_settings'];
+                    }
+                } else {
+                    \Log::warning('Failed to fetch account settings', [
+                        'status' => $settingsResponse->status(),
+                        'response' => $settingsResponse->body()
+                    ]);
+                }
+            } catch (\Exception $e) {
+                \Log::error('Error fetching account settings:', [
+                    'error' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString()
+                ]);
             }
 
             // Prepare the deriv data for session
