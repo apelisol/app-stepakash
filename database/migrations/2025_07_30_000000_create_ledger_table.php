@@ -21,8 +21,14 @@ return new class extends Migration
             $table->text('description')->nullable();
             $table->timestamps();
             
-            // Foreign key constraint
-            $table->foreign('wallet_id')->references('wallet_id')->on('customers');
+            // Add index first
+            $table->index('wallet_id');
+            
+            // Then add foreign key constraint
+            $table->foreign('wallet_id')
+                  ->references('wallet_id')
+                  ->on('customers')
+                  ->onDelete('cascade');
         });
     }
 
