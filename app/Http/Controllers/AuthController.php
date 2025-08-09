@@ -236,16 +236,24 @@ class AuthController extends Controller
     public function sendOtp(Request $request)
     {
         $request->validate([
-            'email' => 'required|email|exists:customers,deriv_email',
+            'email' => 'required|email',
         ]);
 
         $email = $request->email;
-        $customer = Customer::where('deriv_email', $email)->first();
+        
+        // Check if the email exists in either email or deriv_email columns
+        $customer = Customer::where('deriv_email', $email)
+            ->orWhere('email', $email)
+            ->first();
 
         if (!$customer) {
             return redirect()->back()
+                ->withInput()
                 ->with('error', 'We could not find an account with that email address.');
         }
+        
+        // Use the email from the customer record to ensure consistency
+        $email = $customer->deriv_email ?? $customer->email;
 
         // Check if there's a recent OTP that hasn't expired yet
         $recentOtp = ForgotPassword::where('email', $email)
