@@ -555,63 +555,68 @@ class AuthController extends Controller
         }
     }
 
-    /**
-     * Generate next wallet ID
+   /**
+     * Generate next wallet ID in an infinite sequence
+     * 
+     * @param string|null $currentReceipt The current wallet ID (e.g., 'SK0001A', 'SK9999ZZ', etc.)
+     * @return string The next wallet ID in sequence
+     * @throws InvalidArgumentException If input format is invalid
      */
-    private function getNextWallet($currentReceipt)
+    private function getNextWallet(?string $currentReceipt = null): string
     {
-        // Remove 'SK' prefix if it exists for processing
-        $currentReceipt = str_starts_with($currentReceipt, 'SK') ? substr($currentReceipt, 2) : $currentReceipt;
-        
-        preg_match('/([A-Z]+)(\d+)([A-Z]*)/', $currentReceipt, $matches);
-        $letters = $matches[1];
-        $digits = intval($matches[2]);
-        $extraLetter = $matches[3] ?? '';
-
-        $maxDigits = 4;
-        $maxLetters = 2;
-
-        // Increment digits
-        $nextDigits = $digits + 1;
-        $nextLetters = $letters;
-        $nextExtraLetter = $extraLetter;
-
-        // Handle digit rollover
-        if ($nextDigits > pow(10, $maxDigits) - 1) {
-            $nextDigits = 1;
-            
-            // Increment letters (A-Z)
-            $letterPos = strlen($nextLetters) - 1;
-            while ($letterPos >= 0) {
-                $nextChar = $nextLetters[$letterPos];
-                if ($nextChar === 'Z') {
-                    $nextLetters[$letterPos] = 'A';
-                    $letterPos--;
-                } else {
-                    $nextLetters[$letterPos] = chr(ord($nextChar) + 1);
-                    break;
-                }
-            }
-            
-            // If we've gone through all letters, add an extra letter
-            if ($letterPos < 0) {
-                if (empty($nextExtraLetter)) {
-                    $nextExtraLetter = 'A';
-                } else if ($nextExtraLetter === 'Z') {
-                    $nextExtraLetter = 'A';
-                    $nextLetters = str_repeat('A', $maxLetters);
-                } else {
-                    $nextExtraLetter = chr(ord($nextExtraLetter) + 1);
-                }
-            }
+        // If no current receipt, start with SK0001A
+        if (empty($currentReceipt)) {
+            return 'SK0001A';
         }
 
-        $nextDigitsStr = str_pad($nextDigits, $maxDigits, '0', STR_PAD_LEFT);
+        // Validate input format (SK followed by digits then letters)
+        if (!preg_match('/^SK(\d{4,})([A-Z]*)$/', $currentReceipt, $matches)) {
+            throw new InvalidArgumentException("Invalid wallet ID format: " . $currentReceipt);
+        }
 
-        // Always return with SK prefix
-        return 'SK' . $nextLetters . $nextDigitsStr . $nextExtraLetter;
+        $digits = $matches[1];
+        $letters = $matches[2] ?? '';
+
+        $nextDigits = $digits;
+        $nextLetters = $letters;
+
+        // Case 1: No letters - just increment digits
+        if (empty($letters)) {
+            $nextDigits = str_pad((int)$digits + 1, strlen($digits), '0', STR_PAD_LEFT);
+            
+            // If we overflow digit length, add 'A' suffix and reset digits
+            if ((int)$nextDigits === 0) { // Overflow occurred
+                $nextDigits = '0001';
+                $nextLetters = 'A';
+            }
+        }
+        // Case 2: Has letters - increment letter sequence
+        else {
+            $letterArray = array_reverse(str_split($letters));
+            $carry = true;
+            
+            for ($i = 0; $i < count($letterArray) && $carry; $i++) {
+                if ($letterArray[$i] === 'Z') {
+                    $letterArray[$i] = 'A';
+                    $carry = true;
+                } else {
+                    $letterArray[$i] = chr(ord($letterArray[$i]) + 1);
+                    $carry = false;
+                }
+            }
+            
+            if ($carry) {
+                $letterArray[] = 'A'; // Add new letter position
+            }
+            
+            $nextLetters = implode('', array_reverse($letterArray));
+        }
+
+        // Construct the next wallet ID
+        return 'SK' . $nextDigits . $nextLetters;
     }
 
+    
     /**
      * Format phone number to Kenyan standard
      */
