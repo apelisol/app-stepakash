@@ -9,6 +9,8 @@ class ForgotPassword extends Model
 {
     use HasFactory;
 
+    protected $table = 'forgot_password';
+
     protected $fillable = [
         'wallet_id',
         'phone',

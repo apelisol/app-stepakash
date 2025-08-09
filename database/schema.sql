@@ -164,8 +164,11 @@ CREATE TABLE `customers` (
 CREATE TABLE `forgot_password` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
   `wallet_id` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `phone` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `phone` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `email` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `otp` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `method` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `ip_address` varchar(45) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`)
