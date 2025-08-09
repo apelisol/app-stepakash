@@ -369,10 +369,21 @@ class AuthController extends Controller
             
             Log::info('OTP email sent successfully', ['to' => $toEmail]);
             
+            // Return JSON response for API
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'We have sent a 6-digit verification code to your email. The code is valid for ' . $this->otpExpiryMinutes . ' minutes.',
+                    'wallet_id' => $customer->wallet_id
+                ]);
+            }
+            
+            // For web requests
             return redirect()->route('password.verify', ['wallet_id' => $customer->wallet_id])
                 ->with('status', 'We have sent a 6-digit verification code to your email. The code is valid for ' . $this->otpExpiryMinutes . ' minutes.');
                 
         } catch (\Exception $e) {
+            $errorMessage = 'Failed to send OTP. Please try again later.';
             Log::error('Failed to send OTP email', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
@@ -380,8 +391,17 @@ class AuthController extends Controller
                 'email' => $toEmail ?? null
             ]);
             
-            return redirect()->back()
-                ->with('error', 'Failed to send OTP. Please try again later.');
+            // Return JSON response for API
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $errorMessage,
+                    'error' => config('app.debug') ? $e->getMessage() : null
+                ], 500);
+            }
+            
+            // For web requests
+            return redirect()->back()->with('error', $errorMessage);
         }
     }
 

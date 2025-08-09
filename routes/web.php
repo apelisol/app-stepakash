@@ -22,14 +22,25 @@ Route::get('/', function () {
 // Test email route
 Route::get('/test-email', function () {
     try {
-        \Illuminate\Support\Facades\Mail::raw('Test email content', function($message) {
-            $message->to('livingstoneapeli@gmail.com')
-                    ->subject('Test Email from StepaKash');
-        });
+        $otp = rand(100000, 999999);
         
-        return 'Test email sent successfully!';
+        // Log the OTP for testing purposes
+        \Illuminate\Support\Facades\Log::info('Test OTP generated', ['otp' => $otp]);
+        
+        // In a real scenario, you would send the email with the OTP
+        // For testing, we'll just log it
+        return response()->json([
+            'success' => true,
+            'message' => 'We have sent a 6-digit verification code to your email. The code is valid for 30 minutes.',
+            'otp' => $otp // Only for testing, remove in production
+        ]);
+        
     } catch (\Exception $e) {
-        return 'Error sending email: ' . $e->getMessage();
+        return response()->json([
+            'success' => false,
+            'message' => 'Failed to send OTP. Please try again later.',
+            'error' => $e->getMessage()
+        ], 500);
     }
 });
 
