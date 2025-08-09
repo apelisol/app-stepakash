@@ -151,11 +151,29 @@ class AuthController extends Controller
             'deriv_account_number' => 'sometimes|string',
             'deriv_currency' => 'sometimes|string|size:3',
             'deriv_email' => 'sometimes|email|max:255',
+            'email' => 'sometimes|email|max:255',
             'user_id' => 'sometimes|numeric',
             'country' => 'sometimes|string|max:2',
             'landing_company_name' => 'sometimes|string',
             'landing_company_fullname' => 'sometimes|string',
-            'is_virtual' => 'sometimes|boolean'
+            'is_virtual' => 'sometimes|boolean',
+            'is_real_account' => 'sometimes|boolean',
+            'all_deriv_accounts' => 'sometimes|array',
+            'scopes' => 'sometimes|array',
+            'account_list' => 'sometimes|array',
+            'first_name' => 'sometimes|string|max:100',
+            'last_name' => 'sometimes|string|max:100',
+            'date_of_birth' => 'sometimes|date',
+            'place_of_birth' => 'sometimes|string|max:100',
+            'address_line_1' => 'sometimes|string|max:255',
+            'address_line_2' => 'sometimes|string|max:255',
+            'address_city' => 'sometimes|string|max:100',
+            'address_state' => 'sometimes|string|max:100',
+            'address_postcode' => 'sometimes|string|max:20',
+            'tax_identification_number' => 'sometimes|string|max:50',
+            'tax_residence' => 'sometimes|string|max:100',
+            'has_secret_answer' => 'sometimes|boolean',
+            'email_consent' => 'sometimes|boolean'
         ]);
 
         if ($validator->fails()) {
@@ -178,21 +196,45 @@ class AuthController extends Controller
             $lastCustomer = Customer::orderBy('id', 'desc')->first();
             $walletId = $lastCustomer ? $this->getNextWallet($lastCustomer->wallet_id) : 'SK0001A';
 
-            // Create customer with essential Deriv CR account data
+            // Prepare all customer data from request
             $customerData = [
                 'wallet_id' => $walletId,
                 'phone' => $phone,
                 'password' => Hash::make($request->password),
-                'fullname' => $request->fullname,
-                'email' => $request->deriv_email, // Map Deriv email to main email
+                'fullname' => $request->fullname ?? $request->first_name . ' ' . $request->last_name,
+                'email' => $request->email ?? $request->deriv_email,
+                'account_number' => $request->account_number,
                 'deriv_token' => $request->deriv_token,
                 'deriv_login_id' => $request->deriv_login_id,
                 'deriv_account_number' => $request->deriv_account_number,
                 'deriv_currency' => $request->deriv_currency,
-                'deriv_email' => $request->deriv_email,
+                'all_deriv_accounts' => $request->all_deriv_accounts ? json_encode($request->all_deriv_accounts) : null,
+                'user_id' => $request->user_id,
+                'country' => $request->country,
+                'landing_company_name' => $request->landing_company_name,
+                'landing_company_fullname' => $request->landing_company_fullname,
+                'scopes' => $request->scopes ? json_encode($request->scopes) : null,
+                'is_virtual' => $request->is_virtual ?? 0,
+                'is_real_account' => $request->is_real_account ?? true,
+                'account_list' => $request->account_list ? json_encode($request->account_list) : null,
+                'first_name' => $request->first_name,
+                'last_name' => $request->last_name,
+                'date_of_birth' => $request->date_of_birth,
+                'place_of_birth' => $request->place_of_birth,
+                'address_line_1' => $request->address_line_1,
+                'address_line_2' => $request->address_line_2,
+                'address_city' => $request->address_city,
+                'address_state' => $request->address_state,
+                'address_postcode' => $request->address_postcode,
+                'tax_identification_number' => $request->tax_identification_number,
+                'tax_residence' => $request->tax_residence,
+                'has_secret_answer' => $request->has_secret_answer ?? false,
+                'email_consent' => $request->email_consent ?? false,
                 'deriv_verified' => 1, // Mark as verified since it's coming from OAuth
                 'deriv_verification_date' => now(),
-                'deriv_last_sync' => now()
+                'deriv_last_sync' => now(),
+                'deriv_email' => $request->deriv_email,
+                'agent' => false
             ];
 
             // Create customer
