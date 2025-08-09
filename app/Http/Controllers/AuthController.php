@@ -256,11 +256,11 @@ class AuthController extends Controller
                 // Log the error but don't fail the registration
                 \Log::error('Failed to send welcome email: ' . $e->getMessage());
                 
-                return redirect()->route('dashboard')
+                return redirect()->route('wallet.dashboard')
                     ->with('warning', 'Registration successful! However, we encountered an issue sending your welcome email.');
             }
             
-            return redirect()->route('dashboard')
+            return redirect()->route('wallet.dashboard')
                 ->with('success', 'Registration successful! Welcome to StepaKash.');
                     
         } catch (\Exception $e) {
@@ -562,20 +562,33 @@ class AuthController extends Controller
      * @return string The next wallet ID in sequence
      * @throws InvalidArgumentException If input format is invalid
      */
-    private function getNextWallet(?string $currentReceipt = null): string
+    private function getNextWallet($currentReceipt = null): string
     {
         // If no current receipt, start with SK0001A
         if (empty($currentReceipt)) {
             return 'SK0001A';
         }
 
-        // Validate input format (SK followed by digits then letters)
-        if (!preg_match('/^SK(\d{4,})([A-Z]*)$/', $currentReceipt, $matches)) {
-            throw new InvalidArgumentException("Invalid wallet ID format: " . $currentReceipt);
-        }
+        // Ensure we have a string
+        $currentReceipt = (string)$currentReceipt;
+        
+        // Remove 'SK' prefix if it exists for processing
+        $cleanedReceipt = str_starts_with($currentReceipt, 'SK') ? 
+            substr($currentReceipt, 2) : 
+            $currentReceipt;
 
-        $digits = $matches[1];
-        $letters = $matches[2] ?? '';
+        // Default values
+        $digits = '0001';
+        $letters = '';
+        
+        // Try to extract digits and letters from the receipt
+        if (preg_match('/^(\d+)([A-Z]*)$/i', $cleanedReceipt, $matches)) {
+            $digits = str_pad($matches[1], 4, '0', STR_PAD_LEFT);
+            $letters = strtoupper($matches[2] ?? '');
+        } else if (preg_match('/^([A-Z]*)(\d+)$/i', $cleanedReceipt, $matches)) {
+            $digits = str_pad($matches[2], 4, '0', STR_PAD_LEFT);
+            $letters = strtoupper($matches[1] ?? '');
+        }
 
         $nextDigits = $digits;
         $nextLetters = $letters;
