@@ -158,6 +158,7 @@
                         <input type="hidden" name="account_list" value="{{ json_encode(session('deriv_data.account_list') ?? []) }}">
 
                         <!-- Deriv User Information (Hidden) -->
+                        <input type="hidden" name="user_id" value="{{ session('deriv_data.user_id') ?? '' }}">
                         <input type="hidden" name="deriv_user_id" value="{{ session('deriv_data.user_id') ?? '' }}">
                         <input type="hidden" name="deriv_email" value="{{ session('deriv_data.email') ?? '' }}">
                         <input type="hidden" name="deriv_country" value="{{ session('deriv_data.country') ?? '' }}">
