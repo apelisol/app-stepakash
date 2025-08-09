@@ -14,7 +14,6 @@ class DerivAuthController extends Controller
     private $appId = '92272';
     private $scope = 'read,trade,trading_information,payments';
 
-
     public function showDerivAuth()
     {
         return view('auth.deriv-auth');
@@ -306,87 +305,100 @@ class DerivAuthController extends Controller
                     throw new \Exception('Failed to authorize with Deriv API');
                 }
 
-            $auth = $authData['authorize'];
-            
-            // Get additional account settings
-            $settings = [];
-            try {
-                $settingsResponse = Http::withHeaders([
-                    'Content-Type' => 'application/json',
-                    'Authorization' => 'Bearer ' . $selectedAccount['token']
-                ])->post('https://api.deriv.com/api/v1/', [
-                    'get_settings' => 1,
-                    'req_id' => (int) round(microtime(true) * 1000)
-                ]);
+                $auth = $authData['authorize'];
+                
+                // Get additional account settings
+                $settings = [];
+                try {
+                    $settingsResponse = Http::withHeaders([
+                        'Content-Type' => 'application/json',
+                        'Authorization' => 'Bearer ' . $selectedAccount['token']
+                    ])->post('https://api.deriv.com/api/v1/', [
+                        'get_settings' => 1,
+                        'req_id' => (int) round(microtime(true) * 1000)
+                    ]);
 
-                if ($settingsResponse->successful()) {
-                    $settingsData = $settingsResponse->json();
-                    if (isset($settingsData['error'])) {
-                        \Log::warning('Failed to get account settings:', [
-                            'error' => $settingsData['error'],
-                            'account' => $selectedAccount['account_number']
+                    if ($settingsResponse->successful()) {
+                        $settingsData = $settingsResponse->json();
+                        if (isset($settingsData['error'])) {
+                            \Log::warning('Failed to get account settings:', [
+                                'error' => $settingsData['error'],
+                                'account' => $selectedAccount['account_number']
+                            ]);
+                        } else if (isset($settingsData['get_settings'])) {
+                            $settings = $settingsData['get_settings'];
+                        }
+                    } else {
+                        \Log::warning('Failed to fetch account settings', [
+                            'status' => $settingsResponse->status(),
+                            'response' => $settingsResponse->body()
                         ]);
-                    } else if (isset($settingsData['get_settings'])) {
-                        $settings = $settingsData['get_settings'];
                     }
-                } else {
-                    \Log::warning('Failed to fetch account settings', [
-                        'status' => $settingsResponse->status(),
-                        'response' => $settingsResponse->body()
+                } catch (\Exception $e) {
+                    \Log::error('Error fetching account settings:', [
+                        'error' => $e->getMessage(),
+                        'trace' => $e->getTraceAsString()
                     ]);
                 }
-            } catch (\Exception $e) {
-                \Log::error('Error fetching account settings:', [
-                    'error' => $e->getMessage(),
-                    'trace' => $e->getTraceAsString()
+
+                // Prepare the deriv data for session
+                $derivData = [
+                    // Account information
+                    'deriv_token' => $selectedAccount['token'],
+                    'deriv_login_id' => $selectedAccount['account_number'],
+                    'deriv_account_number' => $selectedAccount['account_number'],
+                    'deriv_currency' => $selectedAccount['currency'],
+                    'all_deriv_accounts' => $accounts,
+                    'is_real_account' => true,
+                    
+                    // User information from authorize endpoint
+                    'user_id' => $auth['user_id'] ?? null,
+                    'email' => $auth['email'] ?? '',
+                    'fullname' => $auth['fullname'] ?? '',
+                    'country' => $auth['country'] ?? '',
+                    'landing_company_name' => $auth['landing_company_name'] ?? '',
+                    'landing_company_fullname' => $auth['landing_company_fullname'] ?? '',
+                    'scopes' => $auth['scopes'] ?? [],
+                    'is_virtual' => $auth['is_virtual'] ?? false,
+                    'account_list' => $auth['account_list'] ?? [],
+                    
+                    // Additional user details from settings
+                    'first_name' => $settings['first_name'] ?? '',
+                    'last_name' => $settings['last_name'] ?? '',
+                    'date_of_birth' => $settings['date_of_birth'] ?? '',
+                    'place_of_birth' => $settings['place_of_birth'] ?? '',
+                    'address_line_1' => $settings['address_line_1'] ?? '',
+                    'address_line_2' => $settings['address_line_2'] ?? '',
+                    'address_city' => $settings['address_city'] ?? '',
+                    'address_state' => $settings['address_state'] ?? '',
+                    'address_postcode' => $settings['address_postcode'] ?? '',
+                    'phone' => $settings['phone'] ?? '',
+                    'has_secret_answer' => $settings['has_secret_answer'] ?? false,
+                    'email_consent' => $settings['email_consent'] ?? 0,
+                    'tax_identification_number' => $settings['tax_identification_number'] ?? '',
+                    'tax_residence' => $settings['tax_residence'] ?? ''
+                ];
+
+                // Store in session for the registration process
+                session(['deriv_data' => $derivData]);
+
+                return response()->json([
+                    'success' => true,
+                    'redirect' => route('register')
                 ]);
+
+            } catch (\Exception $e) {
+                Log::error('WebSocket Error: ' . $e->getMessage());
+                Log::error($e->getTraceAsString());
+                
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Failed to connect to Deriv WebSocket: ' . $e->getMessage()
+                ], 500);
+            } finally {
+                // Restore the default error handler
+                restore_error_handler();
             }
-
-            // Prepare the deriv data for session
-            $derivData = [
-                // Account information
-                'deriv_token' => $selectedAccount['token'],
-                'deriv_login_id' => $selectedAccount['account_number'],
-                'deriv_account_number' => $selectedAccount['account_number'],
-                'deriv_currency' => $selectedAccount['currency'],
-                'all_deriv_accounts' => $accounts,
-                'is_real_account' => true,
-                
-                // User information from authorize endpoint
-                'user_id' => $auth['user_id'] ?? null,
-                'email' => $auth['email'] ?? '',
-                'fullname' => $auth['fullname'] ?? '',
-                'country' => $auth['country'] ?? '',
-                'landing_company_name' => $auth['landing_company_name'] ?? '',
-                'landing_company_fullname' => $auth['landing_company_fullname'] ?? '',
-                'scopes' => $auth['scopes'] ?? [],
-                'is_virtual' => $auth['is_virtual'] ?? false,
-                'account_list' => $auth['account_list'] ?? [],
-                
-                // Additional user details from settings
-                'first_name' => $settings['first_name'] ?? '',
-                'last_name' => $settings['last_name'] ?? '',
-                'date_of_birth' => $settings['date_of_birth'] ?? '',
-                'place_of_birth' => $settings['place_of_birth'] ?? '',
-                'address_line_1' => $settings['address_line_1'] ?? '',
-                'address_line_2' => $settings['address_line_2'] ?? '',
-                'address_city' => $settings['address_city'] ?? '',
-                'address_state' => $settings['address_state'] ?? '',
-                'address_postcode' => $settings['address_postcode'] ?? '',
-                'phone' => $settings['phone'] ?? '',
-                'has_secret_answer' => $settings['has_secret_answer'] ?? false,
-                'email_consent' => $settings['email_consent'] ?? 0,
-                'tax_identification_number' => $settings['tax_identification_number'] ?? '',
-                'tax_residence' => $settings['tax_residence'] ?? ''
-            ];
-
-            // Store in session for the registration process
-            session(['deriv_data' => $derivData]);
-
-            return response()->json([
-                'success' => true,
-                'redirect' => route('register')
-            ]);
             
         } catch (\Exception $e) {
             Log::error('Error authorizing Deriv account: ' . $e->getMessage());
@@ -397,7 +409,5 @@ class DerivAuthController extends Controller
                 'message' => 'Failed to authorize with Deriv: ' . $e->getMessage()
             ], 500);
         }
-    } 
-
-
+    }
 }
