@@ -20,14 +20,6 @@ class DerivAuthController extends Controller
         return view('auth.deriv-auth');
     }
 
-    private function extractAccountsFromRequest(Request $request): array
-    {
-        $accounts = $request->input('accounts', []);
-        return array_filter($accounts, function ($account) {
-            return isset($account['account_number']);
-        });
-    }
-
     public function initiateOAuth()
     {
         $state = Str::random(32);
