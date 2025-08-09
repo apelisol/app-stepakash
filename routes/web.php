@@ -19,6 +19,20 @@ Route::get('/', function () {
     return view('welcome');
 });
 
+// Test email route
+Route::get('/test-email', function () {
+    try {
+        \Illuminate\Support\Facades\Mail::raw('Test email content', function($message) {
+            $message->to('livingstoneapeli@gmail.com')
+                    ->subject('Test Email from StepaKash');
+        });
+        
+        return 'Test email sent successfully!';
+    } catch (\Exception $e) {
+        return 'Error sending email: ' . $e->getMessage();
+    }
+});
+
 /*
 |--------------------------------------------------------------------------
 | Guest Routes (Authentication)
