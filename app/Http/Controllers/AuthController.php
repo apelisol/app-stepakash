@@ -126,10 +126,19 @@ class AuthController extends Controller
             'confirmpassword' => 'required|same:password',
             'account_number' => 'sometimes|required',
             'fullname' => 'sometimes|required',
-            'deriv_user_id' => 'sometimes|string|max:255',
+            'deriv_token' => 'sometimes|string',
+            'deriv_login_id' => 'sometimes|string',
+            'deriv_account_number' => 'sometimes|string',
+            'deriv_currency' => 'sometimes|string|size:3',
             'deriv_email' => 'sometimes|email|max:255',
-            'deriv_country' => 'sometimes|string|max:100',
-            'deriv_landing_company' => 'sometimes|string|max:100'
+            'user_id' => 'sometimes|numeric',
+            'country' => 'sometimes|string|max:2',
+            'landing_company_name' => 'sometimes|string',
+            'landing_company_fullname' => 'sometimes|string',
+            'scopes' => 'sometimes|array',
+            'is_virtual' => 'sometimes|boolean',
+            'account_list' => 'sometimes|array',
+            'all_deriv_accounts' => 'sometimes|array'
         ]);
 
         if ($validator->fails()) {
@@ -165,17 +174,27 @@ class AuthController extends Controller
                 'wallet_id' => $walletId,
                 'account_number' => $request->account_number,
                 'fullname' => $request->fullname,
-                'deriv_account' => $request->deriv_account ? 1 : 0,
+                'email' => $request->deriv_email, // Map Deriv email to main email
+                'country' => $request->country, // Store country from Deriv
+                // Deriv specific fields
+                'deriv_account' => 1, // Always true for Deriv signups
                 'deriv_token' => $request->deriv_token,
                 'deriv_email' => $request->deriv_email,
                 'deriv_login_id' => $request->deriv_login_id,
                 'deriv_account_number' => $request->deriv_account_number,
+                'deriv_currency' => $request->deriv_currency,
+                'user_id' => $request->user_id,
+                'landing_company_name' => $request->landing_company_name,
+                'landing_company_fullname' => $request->landing_company_fullname,
+                'scopes' => $request->scopes ? json_encode($request->scopes) : null,
+                'is_virtual' => $request->is_virtual ?? 0,
+                'account_list' => $request->account_list ? json_encode($request->account_list) : null,
+                'all_deriv_accounts' => $request->all_deriv_accounts ? json_encode($request->all_deriv_accounts) : null,
+                // Set verification status
+                'deriv_verified' => 1,
+                'deriv_verification_date' => now(),
+                'deriv_last_sync' => now()
             ];
-
-            if ($request->deriv_account && $request->deriv_token) {
-                $customerData['deriv_verified'] = 1;
-                $customerData['deriv_verified_at'] = now();
-            }
 
             $customer = Customer::create($customerData);
 
