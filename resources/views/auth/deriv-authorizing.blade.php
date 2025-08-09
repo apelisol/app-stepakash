@@ -44,12 +44,6 @@
                 <div id="errorMessage" class="mt-4 text-red-600 text-sm hidden">
                     There was an error authorizing your account. Please try again.
                 </div>
-                
-                <div class="mt-6">
-                    <a href="{{ route('auth.deriv') }}" class="font-medium text-primary hover:text-primary-600">
-                        &larr; Back to login
-                    </a>
-                </div>
             </div>
         </div>
     </div>
