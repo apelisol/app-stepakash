@@ -20,6 +20,48 @@ class DerivAuthController extends Controller
         return view('auth.deriv-auth');
     }
 
+    /**
+     * Get user accounts from Deriv API
+     */
+    private function getUserAccounts($accessToken): array
+    {
+        try {
+            $response = Http::withHeaders([
+                'Authorization' => 'Bearer ' . $accessToken,
+                'Content-Type' => 'application/json',
+            ])->get('https://oauth.deriv.com/api/v1/accounts');
+
+            $data = $response->json();
+
+            if (!isset($data['accounts']) || !is_array($data['accounts'])) {
+                Log::error('Invalid accounts data received from Deriv API', ['response' => $data]);
+                return [];
+            }
+
+            // Filter and format accounts
+            return array_filter(array_map(function ($account) {
+                if (empty($account['account_number']) || empty($account['currency'])) {
+                    return null;
+                }
+
+                return [
+                    'account_number' => $account['account_number'],
+                    'currency' => $account['currency'],
+                    'is_real' => $account['account_type'] === 'real',
+                    'balance' => $account['balance'] ?? 0,
+                    'loginid' => $account['loginid'] ?? null,
+                ];
+            }, $data['accounts']));
+
+        } catch (\Exception $e) {
+            Log::error('Error fetching user accounts from Deriv API: ' . $e->getMessage());
+            return [];
+        }
+    }
+
+    /**
+     * Extract accounts from request parameters
+     */
     private function extractAccountsFromRequest(Request $request): array
     {
         $accounts = $request->input('accounts', []);
@@ -30,10 +72,16 @@ class DerivAuthController extends Controller
 
     public function initiateOAuth()
     {
-        $state = Str::random(32);
-        session(['oauth_state' => $state]);
+        // Generate a secure random state
+        $state = Str::random(40);
+        
+        // Store the state in the session for later verification
+        session([
+            'oauth_state' => $state,
+            'oauth_state_time' => now()->timestamp
+        ]);
 
-        $redirectUri = route('auth.deriv.callback');
+        $redirectUri = route('deriv.callback');
 
         $oauthUrl = "https://oauth.deriv.com/oauth2/authorize?" . http_build_query([
             'app_id' => $this->appId,
@@ -51,26 +99,69 @@ class DerivAuthController extends Controller
 
     public function handleCallback(Request $request)
     {
+        // Verify state parameter to prevent CSRF
         $receivedState = $request->state;
         $storedState = session('oauth_state');
+        $stateTime = session('oauth_state_time');
 
-        if ($receivedState !== $storedState) {
-            return redirect()->route('auth.deriv')->with('error', 'Invalid state parameter');
+        // Check if state exists and is not expired (10 minutes)
+        if (!$storedState || !$stateTime || (time() - $stateTime) > 600) {
+            return redirect()->route('welcome')->with('error', 'Session expired. Please try again.');
         }
 
-        $accounts = $this->extractAccountsFromRequest($request);
-
-        if (empty($accounts)) {
-            return redirect()->route('auth.deriv')->with('error', 'No eligible Deriv accounts found');
+        // Verify state matches
+        if (!hash_equals($storedState, $receivedState)) {
+            return redirect()->route('welcome')->with('error', 'Invalid state parameter. Possible CSRF attack.');
         }
 
-        session(['deriv_auth_accounts' => $accounts]);
-        session()->forget('oauth_state');
+        // Check for error from OAuth provider
+        if ($request->has('error')) {
+            return redirect()->route('welcome')->with('error', 'Authorization failed: ' . $request->error);
+        }
 
-        return view('auth.deriv-authorizing', [
-            'accounts' => $accounts,
-            'primary_account' => $accounts[0] 
-        ]);
+        // Get the authorization code
+        if (!$request->has('code')) {
+            return redirect()->route('welcome')->with('error', 'Authorization code not found');
+        }
+
+        try {
+            // Exchange the authorization code for an access token
+            $response = Http::asForm()->post('https://oauth.deriv.com/oauth2/token', [
+                'grant_type' => 'authorization_code',
+                'client_id' => $this->appId,
+                'code' => $request->code,
+                'redirect_uri' => route('deriv.callback'),
+            ]);
+
+            $tokenData = $response->json();
+
+            if (!isset($tokenData['access_token'])) {
+                throw new \Exception('Failed to obtain access token');
+            }
+
+            // Store the token data in the session
+            session(['deriv_token' => $tokenData]);
+
+            // Get user accounts
+            $accounts = $this->getUserAccounts($tokenData['access_token']);
+
+            if (empty($accounts)) {
+                return redirect()->route('welcome')->with('error', 'No Deriv accounts found');
+            }
+
+            // Store accounts in session and clean up
+            session(['deriv_auth_accounts' => $accounts]);
+            session()->forget(['oauth_state', 'oauth_state_time']);
+
+            return view('auth.deriv-authorizing', [
+                'accounts' => $accounts,
+                'primary_account' => $accounts[0]
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('OAuth callback error: ' . $e->getMessage());
+            return redirect()->route('welcome')->with('error', 'An error occurred during authorization: ' . $e->getMessage());
+        }
     }
 
     /**
