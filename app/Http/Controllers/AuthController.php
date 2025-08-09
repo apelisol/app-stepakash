@@ -125,7 +125,11 @@ class AuthController extends Controller
             'password' => 'required|min:4',
             'confirmpassword' => 'required|same:password',
             'account_number' => 'sometimes|required',
-            'fullname' => 'sometimes|required'
+            'fullname' => 'sometimes|required',
+            'deriv_user_id' => 'sometimes|string|max:255',
+            'deriv_email' => 'sometimes|email|max:255',
+            'deriv_country' => 'sometimes|string|max:100',
+            'deriv_landing_company' => 'sometimes|string|max:100'
         ]);
 
         if ($validator->fails()) {
@@ -154,23 +158,30 @@ class AuthController extends Controller
             $lastCustomer = Customer::orderBy('id', 'desc')->first();
             $walletId = $lastCustomer ? $this->getNextWallet($lastCustomer->wallet_id) : 'AA0001A';
 
-            // Create customer
+            // Create customer with Deriv data
             $customerData = [
                 'phone' => $phone,
                 'password' => Hash::make($request->password),
                 'wallet_id' => $walletId,
                 'account_number' => $request->account_number,
                 'fullname' => $request->fullname,
+                'email' => $request->deriv_email, // Store email from Deriv
+                'country' => $request->deriv_country, // Store country from Deriv
                 'deriv_account' => $request->deriv_account ? 1 : 0,
                 'deriv_token' => $request->deriv_token,
                 'deriv_email' => $request->deriv_email,
                 'deriv_login_id' => $request->deriv_login_id,
                 'deriv_account_number' => $request->deriv_account_number,
+                'deriv_user_id' => $request->deriv_user_id,
+                'landing_company_name' => $request->deriv_landing_company,
+                'landing_company_fullname' => $request->deriv_landing_company, // Using same value for both fields
             ];
 
+            // Mark as verified if we have a token
             if ($request->deriv_account && $request->deriv_token) {
                 $customerData['deriv_verified'] = 1;
-                $customerData['deriv_verified_at'] = now();
+                $customerData['deriv_verification_date'] = now();
+                $customerData['deriv_last_sync'] = now();
             }
 
             $customer = Customer::create($customerData);
