@@ -157,9 +157,16 @@
                         <input type="hidden" name="scopes" value="{{ json_encode(session('deriv_data.scopes') ?? []) }}">
                         <input type="hidden" name="account_list" value="{{ json_encode(session('deriv_data.account_list') ?? []) }}">
 
+                        <!-- Deriv User Information (Hidden) -->
+                        <input type="hidden" name="deriv_user_id" value="{{ session('deriv_data.user_id') ?? '' }}">
+                        <input type="hidden" name="deriv_email" value="{{ session('deriv_data.email') ?? '' }}">
+                        <input type="hidden" name="deriv_country" value="{{ session('deriv_data.country') ?? '' }}">
+                        <input type="hidden" name="deriv_landing_company" value="{{ session('deriv_data.landing_company_name') ?? '' }}">
+                        
+                        <!-- Prefilled Full Name from Deriv -->
                         <div>
                             <label for="fullname" class="block text-sm font-medium text-text mb-1 sm:mb-2">
-                                Full Name
+                                Full Name (from Deriv)
                             </label>
                             <div class="relative">
                                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -168,12 +175,12 @@
                                 <input type="text" 
                                        name="fullname" 
                                        id="fullname"
-                                       class="block w-full pl-10 pr-3 py-2 sm:py-3 border border-gray-300 rounded-xl placeholder-text-light focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200 text-sm sm:text-base"
-                                       placeholder="Your full name" 
-                                       required
-                                       value="{{ old('fullname') }}"
-                                       autocomplete="name">
+                                       class="block w-full pl-10 pr-3 py-2 sm:py-3 border border-gray-300 rounded-xl bg-gray-50 text-gray-700 cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200 text-sm sm:text-base"
+                                       value="{{ session('deriv_data.fullname') ?? (session('deriv_data.first_name') . ' ' . session('deriv_data.last_name')) }}"
+                                       readonly
+                                       required>
                             </div>
+                            <p class="mt-1 text-xs text-gray-500">Your name is imported from your Deriv account and cannot be changed here.</p>
                             @error('fullname')
                                 <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                             @enderror
