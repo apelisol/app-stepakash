@@ -135,10 +135,7 @@ class AuthController extends Controller
             'country' => 'sometimes|string|max:2',
             'landing_company_name' => 'sometimes|string',
             'landing_company_fullname' => 'sometimes|string',
-            'scopes' => 'sometimes|array',
-            'is_virtual' => 'sometimes|boolean',
-            'account_list' => 'sometimes|array',
-            'all_deriv_accounts' => 'sometimes|array'
+            'is_virtual' => 'sometimes|boolean'
         ]);
 
         if ($validator->fails()) {
@@ -167,7 +164,7 @@ class AuthController extends Controller
             $lastCustomer = Customer::orderBy('id', 'desc')->first();
             $walletId = $lastCustomer ? $this->getNextWallet($lastCustomer->wallet_id) : 'AA0001A';
 
-            // Create customer with Deriv data
+            // Create customer with essential Deriv CR account data
             $customerData = [
                 'phone' => $phone,
                 'password' => Hash::make($request->password),
@@ -176,7 +173,7 @@ class AuthController extends Controller
                 'fullname' => $request->fullname,
                 'email' => $request->deriv_email, // Map Deriv email to main email
                 'country' => $request->country, // Store country from Deriv
-                // Deriv specific fields
+                // Deriv account fields
                 'deriv_account' => 1, // Always true for Deriv signups
                 'deriv_token' => $request->deriv_token,
                 'deriv_email' => $request->deriv_email,
@@ -186,10 +183,6 @@ class AuthController extends Controller
                 'user_id' => $request->user_id,
                 'landing_company_name' => $request->landing_company_name,
                 'landing_company_fullname' => $request->landing_company_fullname,
-                'scopes' => $request->scopes ? json_encode($request->scopes) : null,
-                'is_virtual' => $request->is_virtual ?? 0,
-                'account_list' => $request->account_list ? json_encode($request->account_list) : null,
-                'all_deriv_accounts' => $request->all_deriv_accounts ? json_encode($request->all_deriv_accounts) : null,
                 // Set verification status
                 'deriv_verified' => 1,
                 'deriv_verification_date' => now(),
