@@ -107,7 +107,8 @@
                         @csrf
                         <div>
                             <label for="email" class="block text-sm font-medium text-text mb-1 sm:mb-2">
-                                Email Address
+                                Deriv Account Email
+                                <span class="text-xs text-gray-500 font-normal ml-1">(use the email from your Deriv account)</span>
                             </label>
                             <div class="relative">
                                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -158,6 +159,48 @@
 @endsection
 
 @push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('forgotPasswordForm');
+    const resetBtn = document.getElementById('resetBtn');
+    
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            if (resetBtn) {
+                // Disable the button and show loading state
+                resetBtn.disabled = true;
+                const spinner = resetBtn.querySelector('.spinner');
+                const btnText = resetBtn.querySelector('.btn-text');
+                
+                if (spinner) spinner.classList.remove('hidden');
+                if (btnText) btnText.textContent = 'Sending...';
+                
+                // Add a small delay to allow the UI to update before form submission
+                setTimeout(() => {
+                    // If the form is still valid, it will submit
+                    // Otherwise, re-enable the button after a delay
+                    if (!form.checkValidity()) {
+                        resetBtn.disabled = false;
+                        if (spinner) spinner.classList.add('hidden');
+                        if (btnText) btnText.textContent = 'Send Reset Link';
+                    }
+                }, 100);
+            }
+        });
+    }
+    
+    // Reset button state when page loads
+    if (resetBtn) {
+        resetBtn.disabled = false;
+        const spinner = resetBtn.querySelector('.spinner');
+        const btnText = resetBtn.querySelector('.btn-text');
+        
+        if (spinner) spinner.classList.add('hidden');
+        if (btnText) btnText.textContent = 'Send Reset Link';
+    }
+});
+</script>
+
 <style>
 /* Animations */
 @keyframes fade-in {
