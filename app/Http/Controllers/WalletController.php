@@ -342,22 +342,151 @@ class WalletController extends Controller
         }
     }
 
+    /**
+     * Calculate the current wallet balance from ledger entries
+     * 
+     * @param string $walletId
+     * @return array
+     */
+    protected function calculateWalletBalance($walletId)
+    {
+        $ledgerEntries = Ledger::where('wallet_id', $walletId)
+            ->where('status', true)
+            ->get();
+
+        $balance = [
+            'total' => 0,
+            'available' => 0,
+            'currency' => 'USD', // Default currency
+            'transactions' => []
+        ];
+
+        foreach ($ledgerEntries as $entry) {
+            $amount = (float) $entry->amount;
+            if ($entry->cr_dr === 'cr') {
+                $balance['total'] += $amount;
+            } else {
+                $balance['total'] -= $amount;
+            }
+            $balance['transactions'][] = $entry;
+        }
+
+        // Available balance is the same as total for now
+        $balance['available'] = $balance['total'];
+
+        return $balance;
+    }
+
+    /**
+     * Get Deriv account balance via WebSocket
+     * 
+     * @return array|null
+     */
+    protected function fetchDerivBalance()
+    {
+        try {
+            $client = new \WebSocket\Client(env('DERIV_WS_URL'));
+            
+            // Authenticate first if needed
+            $authPayload = [
+                'authorize' => env('DERIV_API_TOKEN')
+            ];
+            
+            $client->send(json_encode($authPayload));
+            $authResponse = json_decode($client->receive(), true);
+            
+            if (isset($authResponse['error'])) {
+                throw new \Exception('Deriv authentication failed: ' . ($authResponse['error']['message'] ?? 'Unknown error'));
+            }
+            
+            // Request balance
+            $balanceRequest = [
+                'balance' => 1,
+                'subscribe' => 0,
+                'req_id' => time()
+            ];
+            
+            $client->send(json_encode($balanceRequest));
+            $balanceResponse = json_decode($client->receive(), true);
+            
+            $client->close();
+            
+            return [
+                'balance' => $balanceResponse['balance']['balance'] ?? 0,
+                'currency' => $balanceResponse['balance']['currency'] ?? 'USD',
+                'loginid' => $balanceResponse['balance']['loginid'] ?? null,
+                'accounts' => $balanceResponse['balance']['accounts'] ?? []
+            ];
+            
+        } catch (\Exception $e) {
+            Log::error('Failed to fetch Deriv balance: ' . $e->getMessage());
+            return null;
+        }
+    }
+    
+    /**
+     * Get Deriv balance for AJAX requests
+     * 
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function getDerivBalance(Request $request)
+    {
+        try {
+            $balance = $this->fetchDerivBalance();
+            
+            if ($balance === null) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Failed to fetch Deriv balance. Please try again later.'
+                ]);
+            }
+            
+            return response()->json([
+                'success' => true,
+                'balance' => $balance['balance'],
+                'currency' => $balance['currency'],
+                'loginid' => $balance['loginid'],
+                'accounts' => $balance['accounts']
+            ]);
+            
+        } catch (\Exception $e) {
+            Log::error('Error in getDerivBalance: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'An error occurred while fetching balance.'
+            ], 500);
+        }
+    }
+
     public function index()
     {
         $user = Auth::user();
-        $wallet = $user->wallet;
         
-        try {
-            $derivBalance = $this->derivService->getBalance();
-        } catch (\Exception $e) {
-            $derivBalance = null;
-            Log::error('Failed to fetch Deriv balance: ' . $e->getMessage());
-        }
+        // Get wallet balance from ledger
+        $walletBalance = $this->calculateWalletBalance($user->wallet_id);
+        
+        // Get Deriv balance (will be updated via AJAX)
+        $derivBalance = $this->fetchDerivBalance() ?? [
+            'balance' => 0,
+            'currency' => 'USD',
+            'loginid' => null,
+            'accounts' => []
+        ];
+        
+        // Get conversion rate if needed
+        $conversionRate = $this->getConversionRate();
 
-        return view('wallet.index', [
-            'wallet' => $wallet,
+        return view('dashboard', [
+            'wallet' => [
+                'id' => $user->wallet_id,
+                'balance' => $walletBalance['total'],
+                'available' => $walletBalance['available'],
+                'currency' => $walletBalance['currency'],
+                'recent_transactions' => array_slice($walletBalance['transactions'], 0, 5) // Last 5 transactions
+            ],
             'derivBalance' => $derivBalance,
-            'conversionRate' => $this->getConversionRate()
+            'conversionRate' => $conversionRate
         ]);
     }
 

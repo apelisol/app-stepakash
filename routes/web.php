@@ -102,6 +102,7 @@ Route::middleware('auth')->group(function () {
         // Main Wallet Pages
         Route::get('/', [WalletController::class, 'dashboard'])->name('dashboard');
         Route::get('/balance', [WalletController::class, 'balance'])->name('balance');
+        Route::get('/deriv-balance', [WalletController::class, 'getDerivBalance'])->name('deriv-balance');
         Route::get('/transactions', [WalletController::class, 'transactions'])->name('transactions');
 
         // Transfer Services
