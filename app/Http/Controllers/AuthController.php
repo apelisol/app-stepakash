@@ -165,23 +165,16 @@ class AuthController extends Controller
                 'wallet_id' => $walletId,
                 'account_number' => $request->account_number,
                 'fullname' => $request->fullname,
-                'email' => $request->deriv_email, // Store email from Deriv
-                'country' => $request->deriv_country, // Store country from Deriv
                 'deriv_account' => $request->deriv_account ? 1 : 0,
                 'deriv_token' => $request->deriv_token,
                 'deriv_email' => $request->deriv_email,
                 'deriv_login_id' => $request->deriv_login_id,
                 'deriv_account_number' => $request->deriv_account_number,
-                'deriv_user_id' => $request->deriv_user_id,
-                'landing_company_name' => $request->deriv_landing_company,
-                'landing_company_fullname' => $request->deriv_landing_company, // Using same value for both fields
             ];
 
-            // Mark as verified if we have a token
             if ($request->deriv_account && $request->deriv_token) {
                 $customerData['deriv_verified'] = 1;
-                $customerData['deriv_verification_date'] = now();
-                $customerData['deriv_last_sync'] = now();
+                $customerData['deriv_verified_at'] = now();
             }
 
             $customer = Customer::create($customerData);
