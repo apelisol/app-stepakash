@@ -198,7 +198,7 @@ class DerivAuthController extends Controller
                     'timeout' => 15, // 15 seconds timeout
                     'headers' => [
                         'Origin' => config('app.url'),
-                        'User-Agent' => 'Stepakash/1.0',
+                        'User-Agent' => 'StepaKash/1.0',
                     ]
                 ]);
                 
