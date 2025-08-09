@@ -342,7 +342,16 @@ class AuthController extends Controller
 
         // Send OTP via email
         try {
-            Mail::to($customer->deriv_email)->send(new PasswordResetMail($customer, $otp));
+            // Use the email that was used to look up the customer
+            $toEmail = $customer->deriv_email ?? $customer->email;
+            
+            Log::info('Sending OTP email', [
+                'to' => $toEmail,
+                'wallet_id' => $customer->wallet_id,
+                'otp' => $otp
+            ]);
+            
+            Mail::to($toEmail)->send(new PasswordResetMail($customer, $otp));
             
             // Store the wallet ID in the session for verification
             session(['reset_wallet_id' => $customer->wallet_id]);
@@ -350,16 +359,27 @@ class AuthController extends Controller
             // Log OTP in database
             ForgotPassword::create([
                 'wallet_id' => $customer->wallet_id,
-                'email' => $email,
+                'email' => $toEmail,
                 'otp' => $otp,
-                'ip_address' => $request->ip()
+                'ip_address' => $request->ip(),
+                'method' => 'email',
+                'created_at' => now(),
+                'updated_at' => now()
             ]);
+            
+            Log::info('OTP email sent successfully', ['to' => $toEmail]);
             
             return redirect()->route('password.verify', ['wallet_id' => $customer->wallet_id])
                 ->with('status', 'We have sent a 6-digit verification code to your email. The code is valid for ' . $this->otpExpiryMinutes . ' minutes.');
                 
         } catch (\Exception $e) {
-            Log::error('Failed to send OTP: ' . $e->getMessage());
+            Log::error('Failed to send OTP email', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'customer_id' => $customer->id ?? null,
+                'email' => $toEmail ?? null
+            ]);
+            
             return redirect()->back()
                 ->with('error', 'Failed to send OTP. Please try again later.');
         }
