@@ -329,6 +329,43 @@ class AuthController extends Controller
             return redirect()->back()
                 ->withInput()
                 ->with('error', 'Please enter a valid 6-digit OTP.');
+        }
+
+        $walletId = $request->wallet_id;
+        $otp = $request->otp;
+        $otpKey = 'otp_' . $walletId;
+        
+        // First check the cache
+        $storedOtp = Cache::get($otpKey);
+        
+        // If not in cache or doesn't match, check database
+        if (!$storedOtp || $storedOtp['otp'] != $otp) {
+            $otpRecord = ForgotPassword::where('wallet_id', $walletId)
+                ->where('otp', $otp)
+                ->where('created_at', '>', now()->subMinutes($this->otpExpiryMinutes))
+                ->orderBy('created_at', 'desc')
+                ->first();
+
+            if (!$otpRecord) {
+                return redirect()->back()
+                    ->withInput()
+                    ->with('error', 'Invalid or expired OTP. Please try again.');
+            }
+            
+            // Update cache with the database OTP
+            $storedOtp = [
+                'otp' => $otpRecord->otp,
+                'email' => $otpRecord->email,
+                'created_at' => $otpRecord->created_at
+            ];
+            
+            Cache::put($otpKey, $storedOtp, now()->addMinutes($this->otpExpiryMinutes));
+        }
+
+        // Generate a password reset token
+        $token = Str::random(60);
+        Cache::put('password_reset_' . $walletId, [
+            'email' => $storedOtp['email'],
             'token' => $token,
             'created_at' => now()
         ], now()->addMinutes($this->resetTokenExpiryMinutes));
