@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use WebSocket\Client as WebSocketClient;
+use Illuminate\Support\Str;
 
 class DerivAuthController extends Controller
 {
@@ -17,6 +18,14 @@ class DerivAuthController extends Controller
     public function showDerivAuth()
     {
         return view('auth.deriv-auth');
+    }
+
+    private function extractAccountsFromRequest(Request $request): array
+    {
+        $accounts = $request->input('accounts', []);
+        return array_filter($accounts, function ($account) {
+            return isset($account['account_number']);
+        });
     }
 
     public function initiateOAuth()
@@ -55,14 +64,12 @@ class DerivAuthController extends Controller
             return redirect()->route('auth.deriv')->with('error', 'No eligible Deriv accounts found');
         }
 
-        // Store the accounts in the session for the loading page
         session(['deriv_auth_accounts' => $accounts]);
         session()->forget('oauth_state');
 
-        // Show a loading/authorizing page that will make the authorize call
         return view('auth.deriv-authorizing', [
             'accounts' => $accounts,
-            'primary_account' => $accounts[0] // Default to first account
+            'primary_account' => $accounts[0] 
         ]);
     }
 
@@ -299,31 +306,7 @@ class DerivAuthController extends Controller
                 'message' => 'Failed to authorize with Deriv: ' . $e->getMessage()
             ], 500);
         }
-    }
+    } 
 
-    /**
-     * Extract accounts from request parameters
-     */
-    private function extractAccountsFromRequest(Request $request): array
-    {
-        $accounts = [];
-        $i = 1;
 
-        while ($request->has("acct$i") && $request->has("token$i")) {
-            $accountNumber = $request->get("acct$i");
-            $currency = $request->get("cur$i", 'USD');
-
-            if (strtoupper($currency) === 'USD' && strpos($accountNumber, 'CR') === 0) {
-                $accounts[] = [
-                    'account_number' => $accountNumber,
-                    'token' => $request->get("token$i"),
-                    'currency' => $currency,
-                    'is_real' => true
-                ];
-            }
-            $i++;
-        }
-
-        return $accounts;
-    }
 }
